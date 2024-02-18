@@ -1,4 +1,7 @@
 ﻿using Facturas2.Entidades.DTO;
+using Facturas2.Entidades.DTO.Usuario;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -36,7 +39,7 @@ namespace Facturas2.Controllers
 
             if (resultado.Succeeded)
             {
-                return ConstruirToken(credenciales);
+                return await ConstruirToken(credenciales);
 
             }
             else
@@ -53,7 +56,7 @@ namespace Facturas2.Controllers
 
             if (res.Succeeded)
             {
-                return ConstruirToken(credenciales);
+                return await ConstruirToken(credenciales);
             }
             else
             {
@@ -62,13 +65,34 @@ namespace Facturas2.Controllers
 
         }
 
+        [HttpGet("RenovarToken")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult<RespuestaAutenticacion>> Renovar()
+        {
+            var emailClaim = HttpContext.User.Claims.Where(c => c.Type == "Email").FirstOrDefault();
+            var email = emailClaim.Value;
 
-        private RespuestaAutenticacion ConstruirToken(Credenciales credenciales)
+            var credencialesUsuario = new Credenciales()
+            {
+                Email = email
+            };
+            return await ConstruirToken(credencialesUsuario);
+        }
+
+
+
+        private async Task<RespuestaAutenticacion> ConstruirToken(Credenciales credenciales)
         {
             var claims = new List<Claim>()
             {
                 new Claim("Email",credenciales.Email)
             };
+            var usuario = await userManager.FindByEmailAsync(credenciales.Email);
+
+            var ClaimsDB = await userManager.GetClaimsAsync(usuario);
+
+            claims.AddRange(ClaimsDB);
+
             var llave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Llave"]));
             var creds = new SigningCredentials(llave, SecurityAlgorithms.HmacSha256);
 
@@ -83,7 +107,37 @@ namespace Facturas2.Controllers
                 Expiracion = expiracion
             };
         }
+        [HttpPost("HacerAdmin")]
+        public async Task<ActionResult> HacerAdmin(EditarAdminDTO editarAdminDTO)
+        {
+            var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
 
+            if (usuario == null)
+            {
+                return BadRequest();
+            }
+
+            await userManager.AddClaimAsync(usuario,new Claim("esAdmin","1"));
+
+            return NoContent();
+
+        }
+
+        [HttpPost("RemoverAdmin")]
+        public async Task<ActionResult> RemoverAdmin(EditarAdminDTO editarAdminDTO)
+        {
+            var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
+
+            if (usuario == null)
+            {
+                return BadRequest();
+            
+            }
+            await userManager.RemoveClaimAsync(usuario, new Claim("esAdmin","1"));
+
+            return NoContent();
+
+        }
 
     }
 }

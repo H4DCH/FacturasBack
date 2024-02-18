@@ -3,6 +3,7 @@ using Facturas2.Entidades;
 using Facturas2.Entidades.DTO.Factura;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +14,16 @@ namespace Facturas2.Controllers
     public class FacturaController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly UserManager<IdentityUser> userManager;
         private readonly Context context;
-        public FacturaController(Context context, IMapper mapper)
+        public FacturaController(Context context, IMapper mapper, UserManager<IdentityUser> userManager)
         {
             this.mapper = mapper;
+            this.userManager = userManager;
             this.context = context;
 
         }
+
 
         [HttpGet]
         public async Task<ActionResult<List<FacturaDTO>>> GetFactura(int Idproveedor)
@@ -38,7 +42,10 @@ namespace Facturas2.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> NewFactura(int Idproveedor, FacturaCraecionDTO facturaCreacionDTO)
         {
-            var email = HttpContext.User.Claims.Where(c => c.Type == "Email").FirstOrDefault();
+            var emailClaim = HttpContext.User.Claims.Where(c => c.Type == "Email").FirstOrDefault();
+            var email = emailClaim.Value;
+            var usuario = await userManager.FindByEmailAsync(email);
+            var usuarioId = usuario.Id;
 
             var proveedorexist = await context.Proveedores.AnyAsync(p => p.Id == Idproveedor);
 
@@ -46,6 +53,7 @@ namespace Facturas2.Controllers
             {
                 return NotFound();
             }
+
             var facturarep = await context.Facturas.FirstOrDefaultAsync(f => f.NumeroFactura == facturaCreacionDTO.NumeroFactura
             && f.ProveedorId == Idproveedor);
 
@@ -53,8 +61,10 @@ namespace Facturas2.Controllers
             {
                 return BadRequest($"La factura con numero : {facturaCreacionDTO.NumeroFactura} ya esta registrada");
             }
+
             var factura = mapper.Map<Factura>(facturaCreacionDTO);
             factura.ProveedorId = Idproveedor;
+            factura.UsuarioId = usuarioId;
 
             context.Add(factura);
             await context.SaveChangesAsync();
@@ -62,6 +72,7 @@ namespace Facturas2.Controllers
             var facturaDTO = mapper.Map<FacturaDTO>(factura);
             return CreatedAtRoute("obtenerFacturas", new { numeroFactura = factura.NumeroFactura, Idproveedor = Idproveedor }, facturaDTO);
         }
+
 
         [HttpGet("{numeroFactura:int}", Name = "obtenerFacturas")]
         public async Task<ActionResult<FacturaDTO>> GetxId(int numeroFactura)
@@ -75,6 +86,7 @@ namespace Facturas2.Controllers
 
             return mapper.Map<FacturaDTO>(facturaId);
         }
+
 
         [HttpPut("{numeroFactura:int}")]
         public async Task<ActionResult> PutFactura(int numeroFactura, int Idproveedor, FacturaUpdateDTO facturaUpdateDTO)

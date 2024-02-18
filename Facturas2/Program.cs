@@ -35,6 +35,22 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<Context>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddAuthorization(opciones =>
+{
+    opciones.AddPolicy("EsAdmin", politica => politica.RequireClaim("esAdmin"));
+
+});
+
+builder.Services.AddDataProtection();
+
+builder.Services.AddCors(opciones =>
+{
+    opciones.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -77,6 +93,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthorization();
 

@@ -14,6 +14,7 @@ namespace Facturas2.Controllers
 {
     [ApiController]
     [Route("api/proveedor")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy ="EsAdmin")]
     public class ProveedorController : ControllerBase
     {
         private readonly Context context;
@@ -25,7 +26,6 @@ namespace Facturas2.Controllers
 
         }
         [HttpGet]
-        [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<List<ProveedorDTO>>> GetProveedor()
         {
             var proveedor = await context.Proveedores.Include(f => f.facturas).ToListAsync();
