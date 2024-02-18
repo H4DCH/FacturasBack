@@ -1,0 +1,14 @@
+# Archivos temporales
+**/bin/
+**/obj/
+
+# Archivos de configuración
+**/appsettings.json
+**/appsettings.Development.json
+
+# Archivos de prueba
+**/tests/
+**/TestResults/
+
+# Paquetes NuGet
+**/packages/
