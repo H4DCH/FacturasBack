@@ -88,3 +88,5 @@ C:\Users\Usuario\source\repos\Facturas2\Facturas2\bin\Debug\net7.0\Microsoft.Ext
 C:\Users\Usuario\source\repos\Facturas2\Facturas2\bin\Debug\net7.0\Microsoft.Extensions.Options.dll
 C:\Users\Usuario\source\repos\Facturas2\Facturas2\bin\Debug\net7.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\Usuario\source\repos\Facturas2\Facturas2\obj\Debug\net7.0\Facturas2.sourcelink.json
+C:\Users\Usuario\source\repos\Facturas2\Facturas2\bin\Debug\net7.0\Castle.Core.dll
+C:\Users\Usuario\source\repos\Facturas2\Facturas2\bin\Debug\net7.0\Moq.dll

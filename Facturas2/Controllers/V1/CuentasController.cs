@@ -9,11 +9,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Facturas2.Controllers
+namespace Facturas2.Controllers.V1
 {
 
     [ApiController]
-    [Route("api/cuentas")]
+    [Route("api/V1/cuentas")]
 
     public class CuentasController : ControllerBase
     {
@@ -29,11 +29,14 @@ namespace Facturas2.Controllers
             this.signInManager = signInManager;
         }
 
-        [HttpPost("registrar")]
+        [HttpPost("registrar", Name = "registrar")]
         public async Task<ActionResult<RespuestaAutenticacion>> Registro(Credenciales credenciales)
         {
-            var usuario = new IdentityUser { UserName = credenciales.Email,
-                Email = credenciales.Email };
+            var usuario = new IdentityUser
+            {
+                UserName = credenciales.Email,
+                Email = credenciales.Email
+            };
 
             var resultado = await userManager.CreateAsync(usuario, credenciales.Contraseña);
 
@@ -48,11 +51,11 @@ namespace Facturas2.Controllers
             }
 
         }
-        [HttpPost("login")]
+        [HttpPost("login", Name = "login")]
         public async Task<ActionResult<RespuestaAutenticacion>> Login(Credenciales credenciales)
         {
             var res = await signInManager.PasswordSignInAsync(credenciales.Email, credenciales.Contraseña,
-                isPersistent:false, lockoutOnFailure : false);
+                isPersistent: false, lockoutOnFailure: false);
 
             if (res.Succeeded)
             {
@@ -65,7 +68,7 @@ namespace Facturas2.Controllers
 
         }
 
-        [HttpGet("RenovarToken")]
+        [HttpGet("RenovarToken", Name = "RenovarToken")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<RespuestaAutenticacion>> Renovar()
         {
@@ -107,7 +110,7 @@ namespace Facturas2.Controllers
                 Expiracion = expiracion
             };
         }
-        [HttpPost("HacerAdmin")]
+        [HttpPost("HacerAdmin", Name = "HacerAdmin")]
         public async Task<ActionResult> HacerAdmin(EditarAdminDTO editarAdminDTO)
         {
             var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
@@ -117,13 +120,13 @@ namespace Facturas2.Controllers
                 return BadRequest();
             }
 
-            await userManager.AddClaimAsync(usuario,new Claim("esAdmin","1"));
+            await userManager.AddClaimAsync(usuario, new Claim("esAdmin", "1"));
 
             return NoContent();
 
         }
 
-        [HttpPost("RemoverAdmin")]
+        [HttpPost("RemoverAdmin", Name = "RemoverAdmin")]
         public async Task<ActionResult> RemoverAdmin(EditarAdminDTO editarAdminDTO)
         {
             var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
@@ -131,9 +134,9 @@ namespace Facturas2.Controllers
             if (usuario == null)
             {
                 return BadRequest();
-            
+
             }
-            await userManager.RemoveClaimAsync(usuario, new Claim("esAdmin","1"));
+            await userManager.RemoveClaimAsync(usuario, new Claim("esAdmin", "1"));
 
             return NoContent();
 

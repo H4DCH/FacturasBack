@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Facturas2.Controllers
+namespace Facturas2.Controllers.V1
 {
     [ApiController]
-    [Route("api/proveedor/{Idproveedor:int}/facturas")]
+    [Route("api/V1/proveedor/{Idproveedor:int}/facturas")]
     public class FacturaController : ControllerBase
     {
         private readonly IMapper mapper;
@@ -25,7 +25,7 @@ namespace Facturas2.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet(Name = "ObtenerFacturas")]
         public async Task<ActionResult<List<FacturaDTO>>> GetFactura(int Idproveedor)
         {
             var factura = await context.Facturas.Where(f => f.ProveedorId == Idproveedor).ToListAsync();
@@ -38,7 +38,7 @@ namespace Facturas2.Controllers
 
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CrearFactura")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> NewFactura(int Idproveedor, FacturaCraecionDTO facturaCreacionDTO)
         {
@@ -70,11 +70,11 @@ namespace Facturas2.Controllers
             await context.SaveChangesAsync();
 
             var facturaDTO = mapper.Map<FacturaDTO>(factura);
-            return CreatedAtRoute("obtenerFacturas", new { numeroFactura = factura.NumeroFactura, Idproveedor = Idproveedor }, facturaDTO);
+            return CreatedAtRoute("ObtenerFactura", new { numeroFactura = factura.NumeroFactura, Idproveedor }, facturaDTO);
         }
 
 
-        [HttpGet("{numeroFactura:int}", Name = "obtenerFacturas")]
+        [HttpGet("{numeroFactura:int}", Name = "ObtenerFactura")]
         public async Task<ActionResult<FacturaDTO>> GetxId(int numeroFactura)
         {
             var facturaId = await context.Facturas.FirstOrDefaultAsync(f => f.NumeroFactura == numeroFactura);
@@ -88,7 +88,7 @@ namespace Facturas2.Controllers
         }
 
 
-        [HttpPut("{numeroFactura:int}")]
+        [HttpPut("{numeroFactura:int}", Name = "ActualizarFactura")]
         public async Task<ActionResult> PutFactura(int numeroFactura, int Idproveedor, FacturaUpdateDTO facturaUpdateDTO)
         {
             var existeProv = await context.Proveedores.AnyAsync(p => p.Id == Idproveedor);
@@ -125,12 +125,12 @@ namespace Facturas2.Controllers
 
         }
 
-        [HttpDelete("{numeroFactura:int}")]
+        [HttpDelete("{numeroFactura:int}", Name = "EliminarFactura")]
         public async Task<ActionResult> DeleteFactura(int numeroFactura)
         {
-            var existe = await context.Facturas.FirstOrDefaultAsync(f => f.NumeroFactura==numeroFactura);
+            var existe = await context.Facturas.FirstOrDefaultAsync(f => f.NumeroFactura == numeroFactura);
 
-            if(existe == null)
+            if (existe == null)
             {
                 return BadRequest();
             }
